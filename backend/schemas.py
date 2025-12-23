@@ -70,3 +70,24 @@ class AccessLogResponse(BaseModel):
 class VaultItemUpdate(BaseModel):
     title: Optional[str] = None
     content: Optional[str] = None
+
+class ShareLinkStatus(BaseModel):
+    id: int
+    token: str
+    expires_at: datetime
+    max_views: int
+    current_views: int
+    remaining_views: int
+    status: str
+    is_password_protected: bool
+    is_active: bool  # <--- Include this status
+    is_deleted: bool
+
+    class Config:
+        from_attributes = True
+
+class ShareLinkUpdate(BaseModel):
+    expires_at: Optional[datetime] = None
+    max_views: Optional[int] = None
+    is_active: Optional[bool] = None
+    is_deleted: Optional[bool] = None

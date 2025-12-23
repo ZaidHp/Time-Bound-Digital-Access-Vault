@@ -198,6 +198,14 @@ export default function Dashboard() {
 >
   Audit Logs
 </Link>
+
+                    <Link
+  href={`/dashboard/shares/${item.id}`}
+  className="flex items-center justify-center text-xs font-medium text-zinc-300 bg-zinc-800 hover:bg-zinc-700 py-2 rounded-lg border border-zinc-700 transition-colors"
+>
+  Manage Links
+</Link>
+
                   <button
                     onClick={() => openShareModal(item)}
                     className="flex items-center justify-center gap-2 text-xs font-semibold text-emerald-950 bg-emerald-500 hover:bg-emerald-400 py-2 rounded-lg transition-colors"

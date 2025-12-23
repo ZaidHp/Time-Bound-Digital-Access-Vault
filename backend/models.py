@@ -26,6 +26,8 @@ class ShareLink(Base):
     expires_at = Column(DateTime(timezone=True))    # "Expiration time" [cite: 42]
     max_views = Column(Integer)                     # "Maximum number of allowed views" [cite: 43]
     current_views = Column(Integer, default=0)
+    is_active = Column(Boolean, default=True)
+    is_deleted = Column(Boolean, default=False)
 
 class AccessLog(Base):
     __tablename__ = "access_logs"
