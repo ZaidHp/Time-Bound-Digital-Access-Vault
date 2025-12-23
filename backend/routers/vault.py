@@ -193,9 +193,11 @@
 
 # backend/routers/vault.py
 import asyncio
+import os
 import secrets
 from datetime import datetime, timezone  # <--- FIX 1: Import timezone
 from typing import List
+from dotenv import load_dotenv
 
 from fastapi import APIRouter, Depends, HTTPException, status, Request
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -210,6 +212,9 @@ from schemas import (
     VaultContentResponse, AccessLogResponse
 )
 from core.security import get_current_user, get_password_hash, verify_password
+
+load_dotenv()
+FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000")
 
 router = APIRouter(
     prefix="/vault",
@@ -280,7 +285,7 @@ async def create_share_link(
     db.add(new_share)
     await db.commit()
 
-    full_link = f"http://localhost:3000/access/{token}"
+    full_link = f"{FRONTEND_URL}/access/{token}"
 
     return {
         "share_link": full_link,
