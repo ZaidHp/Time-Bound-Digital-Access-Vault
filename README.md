@@ -121,7 +121,7 @@ The relational model consists of four main entities:
 ## Security Considerations
 
 * **No Sensitive Data in URL:** The share link uses a random token, not the database ID, to prevents ID enumeration attacks.
-* **Server-Side Validation:** All checks (expiry, view count, password) happen on the server. [cite_start]The frontend is merely a view layer and cannot bypass these checks[cite: 317].
+* **Server-Side Validation:** All checks (expiry, view count, password) happen on the server. The frontend is merely a view layer and cannot bypass these checks.
 * **Password Hashing:** Passwords for both user accounts and protected links are never stored in plain text.
 * **CORS Policy:** The backend strictly restricts CORS to the defined `FRONTEND_URL` to prevent unauthorized cross-origin requests.
 
