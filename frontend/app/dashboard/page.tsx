@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import ShareModal from "@/components/ShareModal";
+import ViewItemModal from "@/components/ViewItemModal";
 import Image from "next/image";
 
 interface VaultItem {
@@ -21,6 +22,9 @@ export default function Dashboard() {
 
   const [selectedItem, setSelectedItem] = useState<VaultItem | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  const [selectedViewItem, setSelectedViewItem] = useState<VaultItem | null>(null);
 
   useEffect(() => {
     fetchItems();
@@ -66,6 +70,18 @@ export default function Dashboard() {
   const openShareModal = (item: VaultItem) => {
     setSelectedItem(item);
     setIsModalOpen(true);
+  };
+
+  const openViewModal = (item: VaultItem) => {
+    setSelectedViewItem(item);
+    setIsViewModalOpen(true);
+  };
+
+  const handleItemUpdate = (updatedItem: VaultItem) => {
+    // Update the item in the local list without refetching
+    setItems(prevItems =>
+      prevItems.map(item => item.id === updatedItem.id ? updatedItem : item)
+    );
   };
 
   return (
@@ -172,7 +188,8 @@ export default function Dashboard() {
 
                 {/* Actions */}
                 <div className="grid grid-cols-2 gap-3 pt-4 border-t border-zinc-800">
-                  <button disabled className="text-xs font-medium text-zinc-400 bg-zinc-950 py-2 rounded-lg border border-zinc-800 opacity-50 cursor-not-allowed">
+                  <button onClick={() => openViewModal(item)}
+                    className="text-xs font-medium text-zinc-300 bg-zinc-950 hover:bg-zinc-900 py-2 rounded-lg border border-zinc-800 transition-colors">
                     View
                   </button>
                     <Link
@@ -199,6 +216,13 @@ export default function Dashboard() {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         item={selectedItem}
+      />
+
+        <ViewItemModal
+        isOpen={isViewModalOpen}
+        onClose={() => setIsViewModalOpen(false)}
+        item={selectedViewItem}
+        onItemUpdated={handleItemUpdate}
       />
     </div>
   );

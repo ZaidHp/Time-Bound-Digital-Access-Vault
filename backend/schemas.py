@@ -66,3 +66,7 @@ class AccessLogResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+class VaultItemUpdate(BaseModel):
+    title: Optional[str] = None
+    content: Optional[str] = None

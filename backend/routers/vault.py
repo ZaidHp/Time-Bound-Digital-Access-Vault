@@ -15,7 +15,7 @@ from schemas import (
     VaultItemCreate, VaultItemResponse,
     ShareLinkCreate, ShareLinkResponse,
     ShareMetaData, ShareAccessRequest,
-    VaultContentResponse, AccessLogResponse
+    VaultContentResponse, AccessLogResponse, VaultItemUpdate
 )
 from core.security import get_current_user, get_password_hash, verify_password
 
@@ -226,3 +226,33 @@ async def read_item_logs(
         })
 
     return logs
+
+
+@router.put("/items/{item_id}", response_model=VaultItemResponse)
+async def update_vault_item(
+        item_id: int,
+        item_update: VaultItemUpdate,
+        db: AsyncSession = Depends(get_db),
+        current_user: User = Depends(get_current_user)
+):
+    # 1. Verify Ownership
+    result = await db.execute(select(VaultItem).where(VaultItem.id == item_id))
+    item = result.scalars().first()
+
+    if not item:
+        raise HTTPException(status_code=404, detail="Vault item not found")
+
+    if item.owner_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Not authorized to edit this item")
+
+    # 2. Update Fields
+    if item_update.title is not None:
+        item.title = item_update.title
+    if item_update.content is not None:
+        item.content = item_update.content
+
+    # 3. Save Changes
+    await db.commit()
+    await db.refresh(item)
+
+    return item
