@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import ShareModal from "@/components/ShareModal";
 import ViewItemModal from "@/components/ViewItemModal";
-import { Lock, Plus, FileText, Calendar, Eye, Share2, Activity, ExternalLink, LogOut, Shield, Clock, Sparkles } from "lucide-react";
+import { Lock, Plus, FileText, Calendar, Eye, Share2, Activity, ExternalLink, LogOut, Shield, Sparkles } from "lucide-react";
 
 interface VaultItem {
   id: number;
@@ -14,23 +14,38 @@ interface VaultItem {
   created_at: string;
 }
 
+// New Interface for Stats
+interface DashboardStats {
+  total_items: number;
+  active_shares: number;
+  total_views: number;
+}
+
 export default function Dashboard() {
   const router = useRouter();
   const [items, setItems] = useState<VaultItem[]>([]);
+
+  // New State for Stats
+  const [stats, setStats] = useState<DashboardStats>({
+    total_items: 0,
+    active_shares: 0,
+    total_views: 0
+  });
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   const [selectedItem, setSelectedItem] = useState<VaultItem | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [selectedViewItem, setSelectedViewItem] = useState<VaultItem | null>(null);
 
   useEffect(() => {
-    fetchItems();
+    fetchData();
   }, []);
 
-  const fetchItems = async () => {
+  // Combined Fetch Function
+  const fetchData = async () => {
     const token = localStorage.getItem("vault_token");
     if (!token) {
       router.push("/auth");
@@ -39,24 +54,29 @@ export default function Dashboard() {
 
     try {
       const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
-      const res = await fetch(`${baseUrl}/vault/items`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
 
-      if (res.status === 401) {
+      // Fetch Items and Stats in parallel
+      const [itemsRes, statsRes] = await Promise.all([
+        fetch(`${baseUrl}/vault/items`, { headers: { Authorization: `Bearer ${token}` } }),
+        fetch(`${baseUrl}/vault/stats`, { headers: { Authorization: `Bearer ${token}` } })
+      ]);
+
+      if (itemsRes.status === 401 || statsRes.status === 401) {
         localStorage.removeItem("vault_token");
         router.push("/auth");
         return;
       }
 
-      if (!res.ok) throw new Error("Failed to fetch vault items");
+      if (!itemsRes.ok || !statsRes.ok) throw new Error("Failed to fetch dashboard data");
 
-      const data = await res.json();
-      setItems(data);
+      const itemsData = await itemsRes.json();
+      const statsData = await statsRes.json();
+
+      setItems(itemsData);
+      setStats(statsData);
+
     } catch (err) {
-      setError("Could not load your vault.");
+      setError("Could not load your vault data.");
     } finally {
       setLoading(false);
     }
@@ -95,7 +115,7 @@ export default function Dashboard() {
       <nav className="relative border-b border-zinc-800/50 bg-black/40 backdrop-blur-xl px-6 py-4 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
           <div className="flex items-center gap-3">
-              <a href="/" className="flex items-center gap-3 group">
+              <Link href="/dashboard" className="flex items-center gap-3 group">
                 <div className="w-10 h-10 bg-emerald-500/20 rounded-lg flex items-center justify-center border border-emerald-500/30">
                     <Lock className="w-5 h-5 text-emerald-400" />
                 </div>
@@ -103,7 +123,7 @@ export default function Dashboard() {
                     <div className="font-bold tracking-tight text-lg">TimeVault</div>
                     <div className="text-[10px] text-zinc-500 font-medium">SECURE STORAGE</div>
                 </div>
-              </a>
+              </Link>
           </div>
           <div className="flex items-center gap-4">
             <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-emerald-500/10 border border-emerald-500/20 rounded-full">
@@ -146,33 +166,48 @@ export default function Dashboard() {
           </Link>
         </div>
 
-        {/* Stats Bar */}
+        {/* Stats Bar (UPDATED) */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
+          {/* Card 1: Total Items */}
           <div className="bg-zinc-900/50 backdrop-blur-sm border border-zinc-800 rounded-2xl p-6 hover:border-emerald-500/30 transition-colors">
             <div className="flex items-center justify-between mb-2">
               <FileText className="w-5 h-5 text-emerald-400" />
-              <span className="text-2xl font-bold text-white">{items.length}</span>
+              <span className="text-2xl font-bold text-white">
+                {loading ? "-" : stats.total_items}
+              </span>
             </div>
             <div className="text-sm text-zinc-500">Total Items</div>
           </div>
+
+          {/* Card 2: Encrypted Items (Same as Total for now) */}
           <div className="bg-zinc-900/50 backdrop-blur-sm border border-zinc-800 rounded-2xl p-6 hover:border-emerald-500/30 transition-colors">
             <div className="flex items-center justify-between mb-2">
               <Lock className="w-5 h-5 text-blue-400" />
-              <span className="text-2xl font-bold text-white">{items.length}</span>
+              <span className="text-2xl font-bold text-white">
+                {loading ? "-" : stats.total_items}
+              </span>
             </div>
             <div className="text-sm text-zinc-500">Encrypted</div>
           </div>
+
+          {/* Card 3: Active Shares */}
           <div className="bg-zinc-900/50 backdrop-blur-sm border border-zinc-800 rounded-2xl p-6 hover:border-emerald-500/30 transition-colors">
             <div className="flex items-center justify-between mb-2">
               <Share2 className="w-5 h-5 text-purple-400" />
-              <span className="text-2xl font-bold text-white">0</span>
+              <span className="text-2xl font-bold text-white">
+                 {loading ? "-" : stats.active_shares}
+              </span>
             </div>
             <div className="text-sm text-zinc-500">Active Shares</div>
           </div>
+
+          {/* Card 4: Total Views */}
           <div className="bg-zinc-900/50 backdrop-blur-sm border border-zinc-800 rounded-2xl p-6 hover:border-emerald-500/30 transition-colors">
             <div className="flex items-center justify-between mb-2">
               <Activity className="w-5 h-5 text-orange-400" />
-              <span className="text-2xl font-bold text-white">0</span>
+              <span className="text-2xl font-bold text-white">
+                {loading ? "-" : stats.total_views}
+              </span>
             </div>
             <div className="text-sm text-zinc-500">Total Views</div>
           </div>

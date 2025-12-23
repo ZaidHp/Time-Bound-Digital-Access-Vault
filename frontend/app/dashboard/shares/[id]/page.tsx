@@ -3,8 +3,8 @@
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
+import toast, { Toaster } from "react-hot-toast";
 
-// Types matching the Backend Schema
 interface ShareLink {
   id: number;
   token: string;
@@ -26,12 +26,14 @@ export default function LinkManagementPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  // Edit Modal State
+  // Modal States
   const [editingLink, setEditingLink] = useState<ShareLink | null>(null);
+  const [linkToDelete, setLinkToDelete] = useState<ShareLink | null>(null); // New state for delete modal
+
+  // Form States
   const [editForm, setEditForm] = useState({ expires_at: "", max_views: 0 });
   const [saving, setSaving] = useState(false);
 
-  // 1. Fetch Links on Load
   useEffect(() => {
     fetchLinks();
   }, []);
@@ -56,56 +58,69 @@ export default function LinkManagementPage() {
       setLinks(data);
     } catch (err: any) {
       setError(err.message);
+      toast.error("Could not load links");
     } finally {
       setLoading(false);
     }
   };
 
-  // 2. Action Handlers
   const handleCopy = (token: string) => {
     const url = `${window.location.origin}/access/${token}`;
     navigator.clipboard.writeText(url);
-    alert("Link copied to clipboard!");
+    toast.success("Link copied to clipboard!");
   };
 
   const handleToggleLock = async (link: ShareLink) => {
-    // Optimistic Update
     const newStatus = !link.is_active;
+    const action = newStatus ? "unlocked" : "locked";
+
     updateLinkState(link.id, { is_active: newStatus });
 
     try {
       await updateBackend(link.id, { is_active: newStatus });
-      fetchLinks(); // Refresh to get computed status (Revoked vs Locked)
+      fetchLinks();
+      toast.success(`Link ${action} successfully`);
     } catch (err) {
-      alert("Failed to update status.");
-      fetchLinks(); // Revert
+      toast.error("Failed to update status");
+      fetchLinks();
     }
   };
 
-  const handleDelete = async (id: number) => {
-    if (!confirm("Are you sure you want to delete this link? It will stop working immediately.")) return;
+  // 1. Open the Delete Modal (Replaces window.confirm)
+  const openDeleteModal = (link: ShareLink) => {
+    setLinkToDelete(link);
+  };
 
-    // Optimistic Remove
-    setLinks((prev) => prev.filter((l) => l.id !== id));
+  // 2. Perform the Actual Delete
+  const confirmDelete = async () => {
+    if (!linkToDelete) return;
+    setSaving(true); // Reuse saving state for button loading
 
-    const token = localStorage.getItem("vault_token");
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+    const deletePromise = async () => {
+      const token = localStorage.getItem("vault_token");
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
-    try {
-      const res = await fetch(`${baseUrl}/vault/shares/${id}`, {
+      const res = await fetch(`${baseUrl}/vault/shares/${linkToDelete.id}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       });
       if (!res.ok) throw new Error("Failed to delete");
-    } catch (err) {
-      alert("Error deleting link.");
-      fetchLinks(); // Revert
-    }
+    };
+
+    await toast.promise(deletePromise(), {
+      loading: "Deleting link...",
+      success: "Link deleted permanently",
+      error: "Error deleting link",
+    });
+
+    // Cleanup
+    setLinks((prev) => prev.filter((l) => l.id !== linkToDelete.id));
+    setLinkToDelete(null);
+    setSaving(false);
   };
 
   const openEditModal = (link: ShareLink) => {
     setEditingLink(link);
-    // Format date for datetime-local input
     const dateStr = new Date(link.expires_at).toISOString().slice(0, 16);
     setEditForm({ expires_at: dateStr, max_views: link.max_views });
   };
@@ -114,21 +129,22 @@ export default function LinkManagementPage() {
     if (!editingLink) return;
     setSaving(true);
 
-    try {
-      await updateBackend(editingLink.id, {
-        expires_at: new Date(editForm.expires_at).toISOString(),
-        max_views: editForm.max_views,
-      });
-      setEditingLink(null);
-      fetchLinks();
-    } catch (err) {
-      alert("Failed to update link.");
-    } finally {
-      setSaving(false);
-    }
+    const updatePromise = updateBackend(editingLink.id, {
+      expires_at: new Date(editForm.expires_at).toISOString(),
+      max_views: editForm.max_views,
+    });
+
+    await toast.promise(updatePromise, {
+      loading: "Updating configuration...",
+      success: "Link updated successfully!",
+      error: "Failed to update link",
+    }).catch(() => {});
+
+    setEditingLink(null);
+    fetchLinks();
+    setSaving(false);
   };
 
-  // Helper: Backend API Call
   const updateBackend = async (id: number, payload: any) => {
     const token = localStorage.getItem("vault_token");
     const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
@@ -145,26 +161,39 @@ export default function LinkManagementPage() {
     if (!res.ok) throw new Error("API Error");
   };
 
-  // Helper: Local State Update
   const updateLinkState = (id: number, changes: Partial<ShareLink>) => {
     setLinks((prev) => prev.map((l) => (l.id === id ? { ...l, ...changes } : l)));
   };
 
-  // Helper: Status Badges
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "Active": return "bg-emerald-500/20 text-emerald-400 border-emerald-500/30";
       case "Expired": return "bg-amber-500/20 text-amber-400 border-amber-500/30";
-      case "Locked": return "bg-red-500/20 text-red-400 border-red-500/30"; // View limit
-      case "Revoked": return "bg-zinc-700 text-zinc-400 border-zinc-600"; // Manual lock
+      case "Locked": return "bg-red-500/20 text-red-400 border-red-500/30";
+      case "Revoked": return "bg-zinc-700 text-zinc-400 border-zinc-600";
       default: return "bg-zinc-800 text-zinc-500";
     }
   };
 
   return (
     <div className="min-h-screen bg-black text-zinc-100 font-sans selection:bg-emerald-500/30">
+      <Toaster
+        position="bottom-center"
+        toastOptions={{
+          style: {
+            background: "#18181b",
+            color: "#fff",
+            border: "1px solid #3f3f46",
+          },
+          success: {
+            iconTheme: { primary: "#10b981", secondary: "#fff" },
+          },
+          error: {
+            iconTheme: { primary: "#ef4444", secondary: "#fff" },
+          },
+        }}
+      />
 
-      {/* Navbar */}
       <nav className="border-b border-zinc-800 bg-zinc-900/50 backdrop-blur-md px-6 py-4 sticky top-0 z-40">
         <div className="max-w-7xl mx-auto flex items-center gap-4">
           <Link href="/dashboard" className="text-zinc-400 hover:text-white transition-colors flex items-center gap-2 text-sm font-medium">
@@ -182,7 +211,7 @@ export default function LinkManagementPage() {
             <p className="text-zinc-500">Manage access tokens for Item #{itemId}.</p>
           </div>
           <button
-            onClick={() => router.push("/dashboard")} // Or open create modal
+            onClick={() => router.push("/dashboard")}
             className="hidden md:flex items-center gap-2 bg-zinc-800 hover:bg-zinc-700 text-white px-4 py-2 rounded-lg text-sm border border-zinc-700 transition-colors"
           >
             Create New Link
@@ -203,8 +232,7 @@ export default function LinkManagementPage() {
           <div className="grid gap-4">
             {links.map((link) => (
               <div key={link.id} className="bg-zinc-900/30 border border-zinc-800 rounded-xl p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 transition-all hover:bg-zinc-900/50 hover:border-zinc-700">
-
-                {/* Info Section */}
+                {/* Content skipped for brevity, same as before */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-3 mb-2">
                     <span className={`px-2.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border ${getStatusBadge(link.status)}`}>
@@ -238,7 +266,6 @@ export default function LinkManagementPage() {
                   </div>
                 </div>
 
-                {/* Actions Section */}
                 <div className="flex items-center gap-3 w-full md:w-auto border-t md:border-t-0 border-zinc-800 pt-3 md:pt-0">
                   <button
                     onClick={() => openEditModal(link)}
@@ -246,7 +273,6 @@ export default function LinkManagementPage() {
                   >
                     Edit
                   </button>
-
                   <button
                     onClick={() => handleToggleLock(link)}
                     className={`flex-1 md:flex-none text-xs font-medium px-3 py-2 rounded-lg transition-colors border ${
@@ -257,9 +283,8 @@ export default function LinkManagementPage() {
                   >
                     {link.is_active ? "Lock" : "Unlock"}
                   </button>
-
                   <button
-                    onClick={() => handleDelete(link.id)}
+                    onClick={() => openDeleteModal(link)} // Changed from handleDelete to openDeleteModal
                     className="flex-1 md:flex-none text-xs font-medium bg-red-900/10 hover:bg-red-900/20 text-red-500 px-3 py-2 rounded-lg transition-colors border border-red-900/20"
                   >
                     Delete
@@ -277,7 +302,7 @@ export default function LinkManagementPage() {
           <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setEditingLink(null)} />
           <div className="relative bg-zinc-900 border border-zinc-700 rounded-2xl p-6 w-full max-w-md shadow-2xl animate-[fadeIn_0.1s_ease-out]">
             <h3 className="text-lg font-bold text-white mb-4">Edit Link Configuration</h3>
-
+            {/* Form inputs same as before */}
             <div className="space-y-4">
               <div>
                 <label className="block text-xs font-semibold text-zinc-400 uppercase mb-2">Extend Expiration</label>
@@ -292,29 +317,51 @@ export default function LinkManagementPage() {
                 <label className="block text-xs font-semibold text-zinc-400 uppercase mb-2">Update Max Views</label>
                 <input
                   type="number"
-                  min={editingLink.current_views} // Cannot be less than what's already viewed
+                  min={editingLink.current_views}
                   value={editForm.max_views}
                   onChange={e => setEditForm({...editForm, max_views: Number(e.target.value)})}
                   className="w-full bg-black border border-zinc-700 rounded-lg px-4 py-2 text-white focus:border-emerald-500 outline-none"
                 />
-                <p className="text-[10px] text-zinc-500 mt-1">Current views: {editingLink.current_views}</p>
               </div>
             </div>
-
             <div className="flex gap-3 mt-6">
-              <button
-                onClick={() => setEditingLink(null)}
-                className="flex-1 py-2 text-zinc-400 hover:text-white text-sm"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleSaveEdit}
-                disabled={saving}
-                className="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-medium py-2 rounded-lg transition-colors text-sm"
-              >
-                {saving ? "Saving..." : "Save Changes"}
-              </button>
+              <button onClick={() => setEditingLink(null)} className="flex-1 py-2 text-zinc-400 hover:text-white text-sm">Cancel</button>
+              <button onClick={handleSaveEdit} disabled={saving} className="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-medium py-2 rounded-lg text-sm">{saving ? "Saving..." : "Save Changes"}</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 3. Delete Confirmation Modal */}
+      {linkToDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setLinkToDelete(null)} />
+          <div className="relative bg-zinc-900 border border-zinc-700 rounded-2xl p-6 w-full max-w-sm shadow-2xl animate-[fadeIn_0.1s_ease-out]">
+            <div className="flex flex-col items-center text-center">
+              <div className="w-12 h-12 bg-red-500/10 rounded-full flex items-center justify-center text-red-500 mb-4">
+                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+              </div>
+
+              <h3 className="text-lg font-bold text-white mb-2">Revoke Link Access?</h3>
+              <p className="text-zinc-400 text-sm mb-6">
+                Are you sure you want to delete this link? This action cannot be undone and the link will stop working immediately.
+              </p>
+
+              <div className="flex w-full gap-3">
+                <button
+                  onClick={() => setLinkToDelete(null)}
+                  className="flex-1 py-2.5 rounded-lg border border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-white text-sm font-medium transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmDelete}
+                  disabled={saving}
+                  className="flex-1 py-2.5 rounded-lg bg-red-600 hover:bg-red-500 text-white text-sm font-medium transition-colors disabled:opacity-50"
+                >
+                  {saving ? "Deleting..." : "Yes, Delete"}
+                </button>
+              </div>
             </div>
           </div>
         </div>

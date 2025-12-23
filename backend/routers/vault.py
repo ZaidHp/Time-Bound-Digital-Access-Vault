@@ -8,6 +8,7 @@ from dotenv import load_dotenv
 from fastapi import APIRouter, Depends, HTTPException, status, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
+from sqlalchemy import func, and_, or_
 
 from database import get_db
 from models import VaultItem, User, ShareLink, AccessLog
@@ -16,7 +17,8 @@ from schemas import (
     ShareLinkCreate, ShareLinkResponse,
     ShareMetaData, ShareAccessRequest,
     VaultContentResponse, AccessLogResponse,
-    VaultItemUpdate, ShareLinkStatus, ShareLinkUpdate
+    VaultItemUpdate, ShareLinkStatus,
+    ShareLinkUpdate, VaultStats
 )
 from core.security import get_current_user, get_password_hash, verify_password
 
@@ -408,3 +410,46 @@ async def delete_share_link(
     await db.commit()
 
     return {"message": "Link deleted successfully"}
+
+
+@router.get("/stats", response_model=VaultStats)
+async def get_vault_stats(
+        db: AsyncSession = Depends(get_db),
+        current_user: User = Depends(get_current_user)
+):
+    # 1. Get List of User's Vault Items IDs
+    # We need this to filter shares belonging only to this user
+    user_items_query = select(VaultItem.id).where(VaultItem.owner_id == current_user.id)
+
+    # 2. Count Total Items
+    total_items_query = select(func.count()).select_from(VaultItem).where(VaultItem.owner_id == current_user.id)
+    total_items = await db.execute(total_items_query)
+    total_items_count = total_items.scalar() or 0
+
+    # 3. Count Active Shares
+    # Criteria: Belongs to user, Active flag, Not Deleted, Not Expired, Views remaining
+    now = datetime.now(timezone.utc)
+
+    active_shares_query = select(func.count()).select_from(ShareLink).where(
+        ShareLink.vault_item_id.in_(user_items_query),
+        ShareLink.is_active == True,
+        ShareLink.is_deleted == False,
+        ShareLink.expires_at > now,
+        ShareLink.current_views < ShareLink.max_views
+    )
+    active_shares = await db.execute(active_shares_query)
+    active_shares_count = active_shares.scalar() or 0
+
+    # 4. Sum Total Views
+    # Sum of current_views for all links belonging to user (even if expired/deleted, we want history)
+    total_views_query = select(func.sum(ShareLink.current_views)).where(
+        ShareLink.vault_item_id.in_(user_items_query)
+    )
+    total_views = await db.execute(total_views_query)
+    total_views_count = total_views.scalar() or 0
+
+    return {
+        "total_items": total_items_count,
+        "active_shares": active_shares_count,
+        "total_views": total_views_count
+    }

@@ -91,3 +91,8 @@ class ShareLinkUpdate(BaseModel):
     max_views: Optional[int] = None
     is_active: Optional[bool] = None
     is_deleted: Optional[bool] = None
+
+class VaultStats(BaseModel):
+    total_items: int
+    active_shares: int
+    total_views: int
