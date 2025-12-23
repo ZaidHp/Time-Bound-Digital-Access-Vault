@@ -95,13 +95,15 @@ export default function Dashboard() {
       <nav className="relative border-b border-zinc-800/50 bg-black/40 backdrop-blur-xl px-6 py-4 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-500/20">
-              <Lock className="w-5 h-5 text-white" />
-            </div>
-            <div>
-              <div className="font-bold tracking-tight text-lg">TimeVault</div>
-              <div className="text-[10px] text-zinc-500 font-medium">SECURE STORAGE</div>
-            </div>
+              <a href="/" className="flex items-center gap-3 group">
+                <div className="w-10 h-10 bg-emerald-500/20 rounded-lg flex items-center justify-center border border-emerald-500/30">
+                    <Lock className="w-5 h-5 text-emerald-400" />
+                </div>
+                <div>
+                    <div className="font-bold tracking-tight text-lg">TimeVault</div>
+                    <div className="text-[10px] text-zinc-500 font-medium">SECURE STORAGE</div>
+                </div>
+              </a>
           </div>
           <div className="flex items-center gap-4">
             <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-emerald-500/10 border border-emerald-500/20 rounded-full">
