@@ -1,6 +1,6 @@
 # Time-Bound Digital Access Vault
 
-A full-stack web application designed to securely store sensitive content and share it using temporary, rule-based access links. [cite_start]This project is implemented as an assessment for the Institutes of Technical & Vocational Education (ITVE)[cite: 275, 287].
+A full-stack web application designed to securely store sensitive content and share it using temporary, rule-based access links.
 
 ## Table of Contents
 - [Project Overview](#project-overview)
