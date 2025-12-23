@@ -1,18 +1,67 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Lock, Clock, Shield, Eye, Key, CheckCircle, ArrowRight, User, LogOut } from 'lucide-react';
+import { Lock, Clock, Shield, Eye, Key, CheckCircle, ArrowRight, User, LogOut, X, Play } from 'lucide-react';
+
+// --- 1. New Video Modal Component ---
+const VideoModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => {
+  if (!isOpen) return null;
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md transition-all animate-in fade-in duration-200"
+      onClick={onClose} // Close when clicking backdrop
+    >
+      {/* Modal Content */}
+      <div
+        className="relative w-full max-w-5xl aspect-video bg-black rounded-2xl overflow-hidden shadow-2xl border border-zinc-800"
+        onClick={(e) => e.stopPropagation()} // Prevent close when clicking inside video area
+      >
+        {/* Close Button */}
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 z-10 p-2 bg-black/50 hover:bg-zinc-800 text-white rounded-full backdrop-blur-sm transition-colors"
+        >
+          <X className="w-6 h-6" />
+        </button>
+
+        {/* Video Player (YouTube Embed Example) */}
+        <video
+          className="w-full h-full object-contain"
+          controls
+          autoPlay
+          // 'playsInline' is important for iOS mobile to not force full screen immediately
+          playsInline
+        >
+          <source src="/Time Vault Demo 1.mp4" type="video/mp4" />
+          Your browser does not support the video tag.
+        </video>
+      </div>
+    </div>
+  );
+};
 
 export default function VaultLanding() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
 
+  // --- 2. Add State for Video Modal ---
+  const [isVideoOpen, setIsVideoOpen] = useState(false);
+
   // Check login status on mount
   useEffect(() => {
-    // Check for auth token or session
     const token = localStorage.getItem("vault_token");
     setIsLoggedIn(!!token);
   }, []);
+
+  // Prevent scrolling when modal is open
+  useEffect(() => {
+    if (isVideoOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+  }, [isVideoOpen]);
 
   const handleAuthClick = () => {
     if (isLoggedIn) {
@@ -23,7 +72,7 @@ export default function VaultLanding() {
   };
 
   const handleLogout = () => {
-     localStorage.removeItem("vault_token");
+    localStorage.removeItem("vault_token");
     setIsLoggedIn(false);
     setShowDropdown(false);
     window.location.href = '/';
@@ -71,6 +120,10 @@ export default function VaultLanding() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-black via-zinc-950 to-black text-white">
+
+      {/* --- 3. Render the Video Modal --- */}
+      <VideoModal isOpen={isVideoOpen} onClose={() => setIsVideoOpen(false)} />
+
       {/* Hero Section */}
       <div className="relative overflow-hidden">
         {/* Animated background elements */}
@@ -156,7 +209,13 @@ export default function VaultLanding() {
                 {isLoggedIn ? 'Go to Dashboard' : 'Start Securing Now'}
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </button>
-              <button className="px-8 py-4 bg-white/5 hover:bg-white/10 backdrop-blur-sm border border-white/10 rounded-full font-semibold text-lg transition-all">
+
+              {/* --- 4. Updated Watch Demo Button --- */}
+              <button
+                onClick={() => setIsVideoOpen(true)}
+                className="px-8 py-4 bg-white/5 hover:bg-white/10 backdrop-blur-sm border border-white/10 rounded-full font-semibold text-lg transition-all flex items-center gap-2"
+              >
+                <Play className="w-5 h-5 fill-current" />
                 Watch Demo
               </button>
             </div>
