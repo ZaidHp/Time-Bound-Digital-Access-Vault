@@ -214,7 +214,7 @@ from schemas import (
 from core.security import get_current_user, get_password_hash, verify_password
 
 load_dotenv()
-FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000")
+FRONTEND_URL = os.getenv("FRONTEND_URL")
 
 router = APIRouter(
     prefix="/vault",
