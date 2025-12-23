@@ -91,7 +91,7 @@ async def create_share_link(
     db.add(new_share)
     await db.commit()
 
-    full_link = f"safga/access/{token}"
+    full_link = f"{FRONTEND_URL}/access/{token}"
 
     return {
         "share_link": full_link,
