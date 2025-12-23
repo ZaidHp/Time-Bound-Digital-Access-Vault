@@ -106,11 +106,11 @@ The relational model consists of four main entities:
 
 1.  **Race Condition Handling:**
     * *Assumption:* Simultaneous access attempts could exceed the view limit.
-    * [cite_start]*Solution:* The backend uses atomic database updates (or explicit locking strategies) to decrement the `current_views` count, ensuring strict enforcement of limits even under load[cite: 348].
+    * *Solution:* The backend uses atomic database updates (or explicit locking strategies) to decrement the `current_views` count, ensuring strict enforcement of limits even under load.
 
 2.  **Security Over UX:**
     * *Decision:* Access logs are immutable. Even if a link is deleted, the history of who accessed it (and when) remains for audit purposes.
-    * [cite_start]*Decision:* Generic error messages are used during login and link access to prevent user enumeration or brute-force guessing[cite: 353].
+    * *Decision:* Generic error messages are used during login and link access to prevent user enumeration or brute-force guessing.
 
 3.  **Token Generation:**
     * Secure, URL-safe random tokens are generated for share links to prevent guessing.
