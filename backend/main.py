@@ -23,8 +23,8 @@ async def startup():
 app.add_middleware(
     CORSMiddleware,
     # Use the variable instead of hardcoded string
-    allow_origins=["*"],
-    allow_credentials=False,
+    allow_origins=[FRONTEND_URL],
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
