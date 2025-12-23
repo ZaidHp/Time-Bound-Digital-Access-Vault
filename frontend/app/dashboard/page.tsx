@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import ShareModal from "@/components/ShareModal";
 import ViewItemModal from "@/components/ViewItemModal";
-import Image from "next/image";
+import { Lock, Plus, FileText, Calendar, Eye, Share2, Activity, ExternalLink, LogOut, Shield, Clock, Sparkles } from "lucide-react";
 
 interface VaultItem {
   id: number;
@@ -78,83 +78,138 @@ export default function Dashboard() {
   };
 
   const handleItemUpdate = (updatedItem: VaultItem) => {
-    // Update the item in the local list without refetching
     setItems(prevItems =>
       prevItems.map(item => item.id === updatedItem.id ? updatedItem : item)
     );
   };
 
   return (
-    <div className="min-h-screen bg-black text-zinc-100 font-sans selection:bg-emerald-500/30">
+    <div className="min-h-screen bg-gradient-to-br from-black via-zinc-950 to-black text-zinc-100">
+      {/* Animated Background Elements */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-emerald-500/5 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-blue-500/5 rounded-full blur-3xl animate-pulse" style={{animationDelay: '1s'}}></div>
+      </div>
 
-      {/* --- Navigation Bar --- */}
-      <nav className="border-b border-zinc-800 bg-zinc-900/50 backdrop-blur-md px-6 py-4 sticky top-0 z-50">
+      {/* Navigation Bar */}
+      <nav className="relative border-b border-zinc-800/50 bg-black/40 backdrop-blur-xl px-6 py-4 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-emerald-600 rounded-lg flex items-center justify-center font-bold text-white shadow-emerald-500/20 shadow-lg">V</div>
-            <span className="font-bold tracking-tight text-lg">Time-Bound Vault</span>
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-500/20">
+              <Lock className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <div className="font-bold tracking-tight text-lg">TimeVault</div>
+              <div className="text-[10px] text-zinc-500 font-medium">SECURE STORAGE</div>
+            </div>
           </div>
-          <div className="flex items-center gap-6">
-            <div className="text-xs text-zinc-500 hidden sm:block">
-               Authenticated Session
+          <div className="flex items-center gap-4">
+            <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-emerald-500/10 border border-emerald-500/20 rounded-full">
+              <Shield className="w-3 h-3 text-emerald-400" />
+              <span className="text-xs text-emerald-300 font-medium">Protected</span>
             </div>
             <button
               onClick={handleLogout}
-              className="text-sm font-medium text-zinc-400 hover:text-white transition-colors"
+              className="flex items-center gap-2 text-sm font-medium text-zinc-400 hover:text-white transition-colors px-4 py-2 rounded-lg hover:bg-white/5"
             >
-              Log Out
+              <LogOut className="w-4 h-4" />
+              <span className="hidden sm:inline">Logout</span>
             </button>
           </div>
         </div>
       </nav>
 
-      {/* --- Main Content --- */}
-      <main className="max-w-7xl mx-auto p-6 md:p-12">
-
+      {/* Main Content */}
+      <main className="relative max-w-7xl mx-auto p-6 md:p-12">
         {/* Header Section */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-12 gap-4">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-12 gap-6">
           <div>
-            <h1 className="text-3xl font-bold text-white mb-2">My Vault</h1>
-            <p className="text-zinc-500 max-w-lg">
-              Manage your securely stored items. Create temporary access links to share sensitive data securely.
+            <div className="flex items-center gap-2 mb-3">
+              <Sparkles className="w-5 h-5 text-emerald-400" />
+              <span className="text-sm text-emerald-400 font-medium">Your Secure Vault</span>
+            </div>
+            <h1 className="text-4xl md:text-5xl font-bold text-white mb-3 bg-gradient-to-br from-white to-zinc-400 bg-clip-text text-transparent">
+              Vault Dashboard
+            </h1>
+            <p className="text-zinc-400 max-w-lg text-lg">
+              Manage encrypted items and create time-bound access links for secure sharing.
             </p>
           </div>
           <Link
             href="/dashboard/create"
-            className="group flex items-center gap-2 bg-white text-black px-5 py-3 rounded-full font-semibold hover:bg-zinc-200 transition-all shadow-[0_0_20px_rgba(255,255,255,0.1)] hover:shadow-[0_0_25px_rgba(255,255,255,0.2)]"
+            className="group flex items-center gap-3 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white px-6 py-4 rounded-2xl font-semibold transition-all shadow-[0_0_30px_rgba(16,185,129,0.3)] hover:shadow-[0_0_40px_rgba(16,185,129,0.5)] hover:-translate-y-0.5"
           >
-            <span className="text-xl leading-none font-light group-hover:rotate-90 transition-transform duration-300">+</span>
-            Secure New Item
+            <Plus className="w-5 h-5 group-hover:rotate-90 transition-transform duration-300" />
+            New Vault Item
           </Link>
+        </div>
+
+        {/* Stats Bar */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
+          <div className="bg-zinc-900/50 backdrop-blur-sm border border-zinc-800 rounded-2xl p-6 hover:border-emerald-500/30 transition-colors">
+            <div className="flex items-center justify-between mb-2">
+              <FileText className="w-5 h-5 text-emerald-400" />
+              <span className="text-2xl font-bold text-white">{items.length}</span>
+            </div>
+            <div className="text-sm text-zinc-500">Total Items</div>
+          </div>
+          <div className="bg-zinc-900/50 backdrop-blur-sm border border-zinc-800 rounded-2xl p-6 hover:border-emerald-500/30 transition-colors">
+            <div className="flex items-center justify-between mb-2">
+              <Lock className="w-5 h-5 text-blue-400" />
+              <span className="text-2xl font-bold text-white">{items.length}</span>
+            </div>
+            <div className="text-sm text-zinc-500">Encrypted</div>
+          </div>
+          <div className="bg-zinc-900/50 backdrop-blur-sm border border-zinc-800 rounded-2xl p-6 hover:border-emerald-500/30 transition-colors">
+            <div className="flex items-center justify-between mb-2">
+              <Share2 className="w-5 h-5 text-purple-400" />
+              <span className="text-2xl font-bold text-white">0</span>
+            </div>
+            <div className="text-sm text-zinc-500">Active Shares</div>
+          </div>
+          <div className="bg-zinc-900/50 backdrop-blur-sm border border-zinc-800 rounded-2xl p-6 hover:border-emerald-500/30 transition-colors">
+            <div className="flex items-center justify-between mb-2">
+              <Activity className="w-5 h-5 text-orange-400" />
+              <span className="text-2xl font-bold text-white">0</span>
+            </div>
+            <div className="text-sm text-zinc-500">Total Views</div>
+          </div>
         </div>
 
         {/* Content Grid */}
         {loading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-pulse">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="h-48 bg-zinc-900/50 rounded-2xl border border-zinc-800" />
+              <div key={i} className="h-64 bg-zinc-900/50 rounded-2xl border border-zinc-800 animate-pulse" />
             ))}
           </div>
         ) : error ? (
-          <div className="p-12 text-center border border-red-900/30 rounded-2xl bg-red-900/10">
-            <p className="text-red-400">{error}</p>
+          <div className="p-12 text-center border border-red-500/20 rounded-2xl bg-red-500/5 backdrop-blur-sm">
+            <div className="w-16 h-16 bg-red-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
+              <span className="text-2xl">⚠️</span>
+            </div>
+            <p className="text-red-400 text-lg font-medium">{error}</p>
           </div>
         ) : items.length === 0 ? (
           // Empty State
-          <div className="flex flex-col items-center justify-center py-24 px-4 text-center border border-dashed border-zinc-800 rounded-3xl bg-zinc-900/20">
-            <div className="w-16 h-16 bg-zinc-800 rounded-full flex items-center justify-center mb-4 text-zinc-600">
-               <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+          <div className="relative overflow-hidden flex flex-col items-center justify-center py-32 px-4 text-center border border-dashed border-zinc-800 rounded-3xl bg-zinc-900/20 backdrop-blur-sm">
+            <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS1vcGFjaXR5PSIwLjAyIiBzdHJva2Utd2lkdGg9IjEiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JpZCkiLz48L3N2Zz4=')] opacity-50"></div>
+            <div className="relative z-10">
+              <div className="w-20 h-20 bg-zinc-800/50 backdrop-blur-sm rounded-2xl flex items-center justify-center mb-6 mx-auto border border-zinc-700">
+                <Lock className="w-10 h-10 text-zinc-600" />
+              </div>
+              <h3 className="text-2xl font-bold text-white mb-3">Your vault is empty</h3>
+              <p className="text-zinc-500 max-w-md mb-8 text-lg">
+                Start securing your sensitive data with encrypted, time-bound storage.
+              </p>
+              <Link
+                href="/dashboard/create"
+                className="inline-flex items-center gap-2 px-6 py-3 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold rounded-xl transition-all"
+              >
+                <Plus className="w-5 h-5" />
+                Create your first item
+              </Link>
             </div>
-            <h3 className="text-xl font-medium text-white mb-2">Your vault is empty</h3>
-            <p className="text-zinc-500 max-w-sm mb-6">
-              Content you add will appear here. Encrypted and ready to share.
-            </p>
-            <Link
-              href="/dashboard/create"
-              className="text-emerald-500 hover:text-emerald-400 font-medium hover:underline"
-            >
-              Create your first item &rarr;
-            </Link>
           </div>
         ) : (
           // Items Grid
@@ -162,71 +217,82 @@ export default function Dashboard() {
             {items.map((item) => (
               <div
                 key={item.id}
-                className="group relative bg-zinc-900/50 border border-zinc-800 hover:border-emerald-500/50 hover:bg-zinc-900/80 rounded-2xl p-6 transition-all duration-300 hover:shadow-2xl hover:shadow-emerald-900/10 flex flex-col"
+                className="group relative bg-zinc-900/50 backdrop-blur-sm border border-zinc-800 hover:border-emerald-500/50 rounded-2xl p-6 transition-all duration-300 hover:shadow-[0_0_40px_rgba(16,185,129,0.1)] hover:-translate-y-1 flex flex-col"
               >
-                {/* Icon & Title */}
-                <div className="flex items-start justify-between mb-4">
-                  <div className="p-3 bg-zinc-950 rounded-xl border border-zinc-800 group-hover:border-emerald-500/30 transition-colors">
-                     <svg className="w-6 h-6 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                {/* Gradient overlay on hover */}
+                <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/0 to-blue-500/0 group-hover:from-emerald-500/5 group-hover:to-blue-500/5 rounded-2xl transition-all duration-300 pointer-events-none"></div>
+
+                <div className="relative z-10 flex flex-col h-full">
+                  {/* Header */}
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="p-3 bg-zinc-950/80 backdrop-blur-sm rounded-xl border border-zinc-800 group-hover:border-emerald-500/40 group-hover:bg-emerald-500/5 transition-all">
+                      <FileText className="w-6 h-6 text-emerald-400" />
+                    </div>
+                    <span className="text-[10px] font-mono text-zinc-500 border border-zinc-800 px-2.5 py-1 rounded-lg bg-black/50 backdrop-blur-sm">
+                      #{item.id}
+                    </span>
                   </div>
-                  <span className="text-[10px] font-mono text-zinc-500 border border-zinc-800 px-2 py-1 rounded bg-black">
-                    ID: {item.id}
-                  </span>
-                </div>
 
-                <h3 className="text-lg font-semibold text-zinc-100 mb-2 truncate" title={item.title}>
-                  {item.title}
-                </h3>
+                  <h3 className="text-xl font-bold text-zinc-100 mb-3 truncate group-hover:text-white transition-colors" title={item.title}>
+                    {item.title}
+                  </h3>
 
-                <p className="text-sm text-zinc-500 mb-6 flex-1">
-                  Created on {new Date(item.created_at).toLocaleDateString(undefined, {
-                    year: 'numeric',
-                    month: 'short',
-                    day: 'numeric'
-                  })}
-                </p>
+                  <div className="flex items-center gap-2 text-sm text-zinc-500 mb-6 flex-1">
+                    <Calendar className="w-4 h-4" />
+                    <span>
+                      {new Date(item.created_at).toLocaleDateString(undefined, {
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric'
+                      })}
+                    </span>
+                  </div>
 
-                {/* Actions */}
-                <div className="grid grid-cols-2 gap-3 pt-4 border-t border-zinc-800">
-                  <button onClick={() => openViewModal(item)}
-                    className="text-xs font-medium text-zinc-300 bg-zinc-950 hover:bg-zinc-900 py-2 rounded-lg border border-zinc-800 transition-colors">
-                    View
-                  </button>
+                  {/* Actions */}
+                  <div className="grid grid-cols-2 gap-3 pt-4 border-t border-zinc-800/50">
+                    <button
+                      onClick={() => openViewModal(item)}
+                      className="flex items-center justify-center gap-2 text-sm font-medium text-zinc-300 bg-zinc-950/50 hover:bg-zinc-900 py-2.5 rounded-xl border border-zinc-800 hover:border-zinc-700 transition-all"
+                    >
+                      <Eye className="w-4 h-4" />
+                      View
+                    </button>
                     <Link
-  href={`/dashboard/logs/${item.id}`}
-  className="flex items-center justify-center text-xs font-medium text-zinc-300 bg-zinc-800 hover:bg-zinc-700 py-2 rounded-lg border border-zinc-700 transition-colors"
->
-  Audit Logs
-</Link>
-
+                      href={`/dashboard/logs/${item.id}`}
+                      className="flex items-center justify-center gap-2 text-sm font-medium text-zinc-300 bg-zinc-950/50 hover:bg-zinc-900 py-2.5 rounded-xl border border-zinc-800 hover:border-zinc-700 transition-all"
+                    >
+                      <Activity className="w-4 h-4" />
+                      Logs
+                    </Link>
                     <Link
-  href={`/dashboard/shares/${item.id}`}
-  className="flex items-center justify-center text-xs font-medium text-zinc-300 bg-zinc-800 hover:bg-zinc-700 py-2 rounded-lg border border-zinc-700 transition-colors"
->
-  Manage Links
-</Link>
-
-                  <button
-                    onClick={() => openShareModal(item)}
-                    className="flex items-center justify-center gap-2 text-xs font-semibold text-emerald-950 bg-emerald-500 hover:bg-emerald-400 py-2 rounded-lg transition-colors"
-                  >
-                    Share
-                    <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" /></svg>
-                  </button>
+                      href={`/dashboard/shares/${item.id}`}
+                      className="flex items-center justify-center gap-2 text-sm font-medium text-zinc-300 bg-zinc-950/50 hover:bg-zinc-900 py-2.5 rounded-xl border border-zinc-800 hover:border-zinc-700 transition-all"
+                    >
+                      <ExternalLink className="w-4 h-4" />
+                      Links
+                    </Link>
+                    <button
+                      onClick={() => openShareModal(item)}
+                      className="flex items-center justify-center gap-2 text-sm font-semibold text-white bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 py-2.5 rounded-xl transition-all shadow-[0_0_20px_rgba(16,185,129,0.2)] hover:shadow-[0_0_25px_rgba(16,185,129,0.3)]"
+                    >
+                      <Share2 className="w-4 h-4" />
+                      Share
+                    </button>
+                  </div>
                 </div>
-
               </div>
             ))}
           </div>
         )}
       </main>
-        <ShareModal
+
+      <ShareModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         item={selectedItem}
       />
 
-        <ViewItemModal
+      <ViewItemModal
         isOpen={isViewModalOpen}
         onClose={() => setIsViewModalOpen(false)}
         item={selectedViewItem}
