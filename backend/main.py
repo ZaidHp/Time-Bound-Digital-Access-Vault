@@ -10,7 +10,7 @@ from routers.vault import router as vault_router
 
 load_dotenv()
 
-app = FastAPI(title="ITVE Access Vault")
+app = FastAPI(title="Time Vault")
 
 FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000")
 
