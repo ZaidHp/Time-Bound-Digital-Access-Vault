@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+sqlalchemy[asyncio]
+asyncpg
+pydantic
+pydantic-settings
+python-jose[cryptography]  # For JWT Authentication
+passlib[bcrypt]           # For password hashing
+python-multipart          # For login forms
