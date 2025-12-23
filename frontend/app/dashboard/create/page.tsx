@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import {Lock} from "lucide-react";
 
 export default function CreateVaultItem() {
   const router = useRouter();
@@ -70,10 +71,17 @@ export default function CreateVaultItem() {
 
       {/* Navbar (Simple) */}
       <nav className="border-b border-zinc-800 bg-zinc-900/50 backdrop-blur-md px-6 py-4 flex justify-between items-center sticky top-0 z-50">
-        <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-emerald-600 rounded-lg flex items-center justify-center font-bold text-white shadow-emerald-500/20 shadow-lg">V</div>
-            <span className="font-bold tracking-tight">Time-Bound Vault</span>
-        </div>
+        <div className="flex items-center gap-3">
+              <a href="/" className="flex items-center gap-3 group">
+                <div className="w-10 h-10 bg-emerald-500/20 rounded-lg flex items-center justify-center border border-emerald-500/30">
+                    <Lock className="w-5 h-5 text-emerald-400" />
+                </div>
+                <div>
+                    <div className="font-bold tracking-tight text-lg">TimeVault</div>
+                    <div className="text-[10px] text-zinc-500 font-medium">SECURE STORAGE</div>
+                </div>
+              </a>
+          </div>
         <Link href="/dashboard" className="text-sm text-zinc-400 hover:text-white transition-colors">
           &larr; Back to Dashboard
         </Link>
